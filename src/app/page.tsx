@@ -62,7 +62,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 min-h-0" style={{ padding: '32px' }}>
-        <ResizablePanelGroup direction="horizontal" className="h-full rounded-xl border border-border overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full rounded-xl border border-border shadow-xl bg-background/95 backdrop-blur-sm overflow-hidden">
           {/* Left Sidebar - Tools/Resources/Prompts */}
           <ResizablePanel defaultSize={38.2} minSize={30} maxSize={50}>
             <div className="h-full" style={{ padding: '32px' }}>

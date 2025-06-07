@@ -145,9 +145,13 @@ export function RequestResponse({
     
     return (
       <Input
+        id={paramName}
         value={value}
         onChange={(e) => handleParameterChange(paramName, e.target.value)}
         placeholder={`Enter ${paramName}`}
+        className="focus:ring-2 focus:ring-ring focus:ring-offset-1"
+        aria-describedby={paramSchema.description ? `${paramName}-description` : undefined}
+        aria-required={isRequired}
       />
     );
   };
@@ -192,10 +196,10 @@ export function RequestResponse({
             <div key={paramName} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Label htmlFor={paramName} className="flex items-center text-sm" style={{ gap: '8px' }}>
                 <span className="font-mono">{paramName}</span>
-                {isRequired && <Badge variant="destructive" className="text-xs" style={{ padding: '2px 6px' }}>Required</Badge>}
+                {isRequired && <Badge variant="destructive" className="text-xs" style={{ padding: '2px 6px' }} aria-label="Required field">Required</Badge>}
               </Label>
               {paramSchema.description && (
-                <p className="text-sm text-muted-foreground">{paramSchema.description}</p>
+                <p id={`${paramName}-description`} className="text-sm text-muted-foreground">{paramSchema.description}</p>
               )}
               <div style={{ marginTop: '4px' }}>
                 {renderParameterInput(paramName, paramSchema, isRequired)}
@@ -218,7 +222,7 @@ export function RequestResponse({
   
   if (!currentItem) {
     return (
-      <Card className="h-full border border-border shadow-sm bg-card">
+      <Card className="h-full border border-border shadow-lg bg-card backdrop-blur-sm">
         <CardHeader style={{ padding: '24px' }}>
           <CardTitle className="text-base">Request & Response</CardTitle>
           <CardDescription className="text-sm" style={{ marginTop: '8px' }}>
@@ -232,7 +236,7 @@ export function RequestResponse({
   return (
     <div className="h-full flex flex-col" style={{ gap: '24px' }}>
       {/* Request Section */}
-      <Card className="border border-border shadow-sm bg-card">
+      <Card className="border border-border shadow-lg bg-card backdrop-blur-sm">
         <CardHeader style={{ padding: '24px' }}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -248,13 +252,23 @@ export function RequestResponse({
                 </CardDescription>
               )}
             </div>
-            <Button onClick={handleExecute} disabled={loading} style={{ marginLeft: '24px', height: '40px', padding: '8px 16px', gap: '8px' }}>
+            <Button 
+              onClick={handleExecute} 
+              disabled={loading}
+              className="transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+              style={{ marginLeft: '24px', height: '40px', padding: '8px 16px', gap: '8px' }}
+            >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Executing...
+                </>
               ) : (
-                <Play className="h-4 w-4" />
+                <>
+                  <Play className="h-4 w-4" />
+                  Execute
+                </>
               )}
-              Execute
             </Button>
           </div>
         </CardHeader>
@@ -286,7 +300,7 @@ export function RequestResponse({
       </Card>
 
       {/* Response Section */}
-      <Card className="flex-1 min-h-0 border border-border shadow-sm bg-card">
+      <Card className="flex-1 min-h-0 border border-border shadow-lg bg-card backdrop-blur-sm">
         <CardHeader style={{ padding: '24px' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center" style={{ gap: '12px' }}>
@@ -300,7 +314,13 @@ export function RequestResponse({
               )}
             </div>
             {response && (
-              <Button variant="outline" size="sm" onClick={copyResponse} style={{ gap: '8px', padding: '8px 12px', height: '36px' }}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={copyResponse}
+                className="transition-all duration-200 hover:bg-accent hover:border-accent-foreground/20 focus:ring-2 focus:ring-ring focus:ring-offset-1"
+                style={{ gap: '8px', padding: '8px 12px', height: '36px' }}
+              >
                 <Copy className="h-4 w-4" />
                 Copy
               </Button>
@@ -315,7 +335,7 @@ export function RequestResponse({
           )}
           
           {response && (
-            <div className="h-full overflow-y-auto rounded-lg border border-border" style={{ padding: '16px' }}>
+            <div className="h-full overflow-y-auto rounded-lg border border-border animate-in fade-in duration-300" style={{ padding: '16px' }}>
               {(() => {
                 // Check if this is an MCP tool response with content array
                 if (response.content && Array.isArray(response.content)) {
@@ -324,7 +344,7 @@ export function RequestResponse({
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                       {response.content.map((item: any, index: number) => (
-                        <div key={index} className={`rounded-lg border ${isError ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50' : 'border-border bg-muted/30'}`} style={{ padding: '20px' }}>
+                        <div key={index} className={`rounded-lg border ${isError ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50' : 'border-border bg-muted/30'} animate-in slide-in-from-bottom-2 duration-300`} style={{ padding: '20px', animationDelay: `${index * 100}ms` }}>
                           {isError && (
                             <div className="flex items-center gap-2 mb-3 text-red-600 dark:text-red-400">
                               <XCircle className="h-4 w-4" />
@@ -357,6 +377,15 @@ export function RequestResponse({
                   </div>
                 );
               })()}
+            </div>
+          )}
+          
+          {loading && !response && !error && (
+            <div className="flex items-center justify-center text-muted-foreground animate-in fade-in duration-300" style={{ height: '120px' }}>
+              <div className="flex items-center space-x-3">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <p className="text-sm animate-pulse">Executing request...</p>
+              </div>
             </div>
           )}
           

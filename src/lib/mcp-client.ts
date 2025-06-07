@@ -17,7 +17,7 @@ export class MCPClient {
       // Create client
       this.client = new Client(
         {
-          name: "mcp-viewer",
+          name: "murmur",
           version: "1.0.0",
         },
         {

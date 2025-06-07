@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const client = new Client(
       {
-        name: "mcp-viewer",
+        name: "murmur",
         version: "1.0.0",
       },
       {

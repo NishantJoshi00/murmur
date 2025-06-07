@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Settings, FileText, MessageSquare } from 'lucide-react';
+import { Search, Settings, FileText, MessageSquare, Loader2 } from 'lucide-react';
 import type { Tool as MCPTool, Resource, Prompt } from '@/types/mcp';
 
 interface ToolsSidebarProps {
@@ -93,7 +93,7 @@ export function ToolsSidebar({
 
   if (!isConnected) {
     return (
-      <Card className="h-full border border-border shadow-sm bg-card">
+      <Card className="h-full border border-border shadow-lg bg-card backdrop-blur-sm">
         <CardHeader style={{ padding: '24px' }}>
           <CardTitle className="text-base">MCP Server Browser</CardTitle>
           <CardDescription className="text-sm" style={{ marginTop: '8px' }}>
@@ -105,7 +105,7 @@ export function ToolsSidebar({
   }
 
   return (
-    <Card className="h-full flex flex-col border border-border shadow-sm bg-card">
+    <Card className="h-full flex flex-col border border-border shadow-lg bg-card backdrop-blur-sm">
       <CardHeader style={{ padding: '24px 24px 20px 24px' }}>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">MCP Server Browser</CardTitle>
@@ -114,6 +114,7 @@ export function ToolsSidebar({
             size="sm"
             onClick={loadData}
             disabled={loading}
+            className="transition-all duration-200 hover:bg-accent hover:border-accent-foreground/20 focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:opacity-50"
             style={{ height: '36px', padding: '8px 12px' }}
           >
             Refresh
@@ -125,7 +126,9 @@ export function ToolsSidebar({
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="focus:ring-2 focus:ring-ring focus:ring-offset-2"
             style={{ paddingLeft: '40px', height: '40px' }}
+            aria-label="Search tools, resources, and prompts"
           />
         </div>
       </CardHeader>
@@ -137,18 +140,18 @@ export function ToolsSidebar({
           </div>
         )}
         
-        <Tabs defaultValue="tools" className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0" style={{ marginBottom: '20px', height: '44px' }}>
-            <TabsTrigger value="tools" className="text-sm" style={{ gap: '6px' }}>
-              <Settings className="h-4 w-4" />
+        <Tabs defaultValue="tools" className="h-full flex flex-col" aria-label="MCP Server Browser">
+          <TabsList className="grid w-full grid-cols-3 flex-shrink-0" style={{ marginBottom: '20px', height: '44px' }} role="tablist">
+            <TabsTrigger value="tools" className="text-sm focus:ring-2 focus:ring-ring focus:ring-offset-1" style={{ gap: '6px' }} aria-label={`Tools (${filteredTools.length} available)`}>
+              <Settings className="h-4 w-4" aria-hidden="true" />
               Tools ({filteredTools.length})
             </TabsTrigger>
-            <TabsTrigger value="resources" className="text-sm" style={{ gap: '6px' }}>
-              <FileText className="h-4 w-4" />
+            <TabsTrigger value="resources" className="text-sm focus:ring-2 focus:ring-ring focus:ring-offset-1" style={{ gap: '6px' }} aria-label={`Resources (${filteredResources.length} available)`}>
+              <FileText className="h-4 w-4" aria-hidden="true" />
               Resources ({filteredResources.length})
             </TabsTrigger>
-            <TabsTrigger value="prompts" className="text-sm" style={{ gap: '6px' }}>
-              <MessageSquare className="h-4 w-4" />
+            <TabsTrigger value="prompts" className="text-sm focus:ring-2 focus:ring-ring focus:ring-offset-1" style={{ gap: '6px' }} aria-label={`Prompts (${filteredPrompts.length} available)`}>
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Prompts ({filteredPrompts.length})
             </TabsTrigger>
           </TabsList>
@@ -160,9 +163,13 @@ export function ToolsSidebar({
                 {filteredTools.map((tool) => (
                   <div
                     key={tool.name}
-                    className="border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectTool(tool)}
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
+                    role="button"
+                    aria-label={`Select ${tool.name} tool${tool.description ? `: ${tool.description}` : ''}`}
                   >
                     <div className="flex items-center justify-between" style={{ marginBottom: '12px' }}>
                       <h4 className="text-sm font-mono">{tool.name}</h4>
@@ -184,6 +191,14 @@ export function ToolsSidebar({
                     )}
                   </div>
                 ))}
+                {loading && (
+                  <div className="flex items-center justify-center" style={{ padding: '40px 20px' }}>
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading tools...</span>
+                    </div>
+                  </div>
+                )}
                 {filteredTools.length === 0 && !loading && (
                   <p className="text-sm text-muted-foreground text-center" style={{ padding: '40px 20px' }}>
                     No tools found
@@ -199,9 +214,11 @@ export function ToolsSidebar({
                 {filteredResources.map((resource) => (
                   <div
                     key={resource.uri}
-                    className="border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectResource(resource)}
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && onSelectResource(resource)}
                   >
                     <div className="flex items-center justify-between" style={{ marginBottom: '12px' }}>
                       <h4 className="text-sm">{resource.name}</h4>
@@ -220,6 +237,14 @@ export function ToolsSidebar({
                     )}
                   </div>
                 ))}
+                {loading && (
+                  <div className="flex items-center justify-center" style={{ padding: '40px 20px' }}>
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading resources...</span>
+                    </div>
+                  </div>
+                )}
                 {filteredResources.length === 0 && !loading && (
                   <p className="text-sm text-muted-foreground text-center" style={{ padding: '40px 20px' }}>
                     No resources found
@@ -235,9 +260,11 @@ export function ToolsSidebar({
                 {filteredPrompts.map((prompt) => (
                   <div
                     key={prompt.name}
-                    className="border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectPrompt(prompt)}
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && onSelectPrompt(prompt)}
                   >
                     <div className="flex items-center justify-between" style={{ marginBottom: '12px' }}>
                       <h4 className="text-sm font-mono">{prompt.name}</h4>
@@ -259,6 +286,14 @@ export function ToolsSidebar({
                     )}
                   </div>
                 ))}
+                {loading && (
+                  <div className="flex items-center justify-center" style={{ padding: '40px 20px' }}>
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading prompts...</span>
+                    </div>
+                  </div>
+                )}
                 {filteredPrompts.length === 0 && !loading && (
                   <p className="text-sm text-muted-foreground text-center" style={{ padding: '40px 20px' }}>
                     No prompts found
