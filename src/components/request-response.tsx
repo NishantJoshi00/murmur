@@ -151,7 +151,7 @@ export function RequestResponse({
         placeholder={`Enter ${paramName}`}
         className="focus:ring-2 focus:ring-ring focus:ring-offset-1"
         aria-describedby={paramSchema.description ? `${paramName}-description` : undefined}
-        aria-required={isRequired}
+        aria-required={required}
       />
     );
   };
@@ -362,6 +362,23 @@ export function RequestResponse({
                               {JSON.stringify(item, null, 2)}
                             </pre>
                           )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                
+                // Check if this is a resource response - show only text content
+                if (selectedResource && response && response.contents) {
+                  return (
+                    <div style={{ marginBottom: '24px' }}>
+                      {response.contents.map((content: any, index: number) => (
+                        <div key={index} className="rounded-lg border border-border bg-muted/30 animate-in slide-in-from-bottom-2 duration-300" style={{ padding: '20px', marginBottom: index < response.contents.length - 1 ? '16px' : '0' }}>
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono">
+                              {content.text || JSON.stringify(content, null, 2)}
+                            </pre>
+                          </div>
                         </div>
                       ))}
                     </div>

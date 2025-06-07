@@ -159,11 +159,11 @@ export function ToolsSidebar({
           <div className="flex-1 overflow-hidden">
             <TabsContent value="tools" className="mt-0 h-full">
               <ScrollArea className="h-full">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px', paddingRight: '16px' }}>
                 {filteredTools.map((tool) => (
                   <div
                     key={tool.name}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectTool(tool)}
                     tabIndex={0}
@@ -210,11 +210,11 @@ export function ToolsSidebar({
             
             <TabsContent value="resources" className="mt-0 h-full">
               <ScrollArea className="h-full">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px', paddingRight: '16px' }}>
                 {filteredResources.map((resource) => (
                   <div
                     key={resource.uri}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectResource(resource)}
                     tabIndex={0}
@@ -256,11 +256,11 @@ export function ToolsSidebar({
             
             <TabsContent value="prompts" className="mt-0 h-full">
               <ScrollArea className="h-full">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px', paddingRight: '16px' }}>
                 {filteredPrompts.map((prompt) => (
                   <div
                     key={prompt.name}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
+                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectPrompt(prompt)}
                     tabIndex={0}
