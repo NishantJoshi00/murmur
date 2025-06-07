@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeSelector } from '@/components/theme-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings, Wifi, WifiOff, Plus } from 'lucide-react';
 import type { ConnectionState } from '@/types/mcp';
@@ -214,7 +214,7 @@ export function Header({ connectionState, onOpenConnectionModal, onDisconnect, o
             <Settings className="h-4 w-4" />
             Manage
           </Button>
-          <ThemeToggle />
+          <ThemeSelector />
         </div>
       </div>
     </header>

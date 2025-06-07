@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,10 +31,8 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange={false}
+          defaultTheme="kanagawa"
+          storageKey="murmur-theme"
         >
           {children}
         </ThemeProvider>
