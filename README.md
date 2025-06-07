@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.png" alt="Murmur Logo" width="200" height="200">
+</div>
+
 # 🎵 Murmur
 
 A beautiful, modern web interface for exploring and interacting with **Model Context Protocol (MCP)** servers. Built with Next.js 15, React 19, and TypeScript.
