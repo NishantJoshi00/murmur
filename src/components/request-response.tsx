@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Copy, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Play, Copy, Clock, CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Tool as MCPTool, Resource, Prompt, ToolInvocation } from '@/types/mcp';
 
 interface RequestResponseProps {
@@ -35,6 +35,7 @@ export function RequestResponse({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const [isRequestCollapsed, setIsRequestCollapsed] = useState(false);
 
   // Reset state when selection changes
   useEffect(() => {
@@ -42,11 +43,13 @@ export function RequestResponse({
     setResponse(null);
     setError(null);
     setDuration(null);
+    setIsRequestCollapsed(false);
   }, [selectedTool, selectedResource, selectedPrompt]);
 
   const handleExecute = async () => {
     setLoading(true);
     setError(null);
+    setIsRequestCollapsed(true);
     const startTime = Date.now();
 
     try {
@@ -80,6 +83,10 @@ export function RequestResponse({
     if (response) {
       navigator.clipboard.writeText(JSON.stringify(response, null, 2));
     }
+  };
+
+  const toggleRequestCollapse = () => {
+    setIsRequestCollapsed(!isRequestCollapsed);
   };
 
   const renderParameterInput = (paramName: string, paramSchema: any, required = false) => {
@@ -236,84 +243,139 @@ export function RequestResponse({
   return (
     <div className="h-full flex flex-col" style={{ gap: '24px' }}>
       {/* Request Section */}
-      <Card className="border border-border shadow-lg bg-card backdrop-blur-sm">
-        <CardHeader style={{ padding: '24px' }}>
-          <div className="flex items-center justify-between">
+      <Card className={`relative border border-border shadow-lg bg-card backdrop-blur-sm transition-all duration-500 ease-in-out ${
+        isRequestCollapsed ? 'flex-shrink-0 py-0' : 'flex-1'
+      }`} style={{ height: isRequestCollapsed ? '64px' : 'auto' }}>
+        <CardHeader style={{ padding: isRequestCollapsed ? '0' : '24px' }}>
+          <div className="flex items-center justify-between" style={{ padding: isRequestCollapsed ? '12px 24px' : '0' }}>
             <div className="flex-1">
-              <CardTitle className="flex items-center text-base font-mono" style={{ gap: '12px' }}>
-                {currentItem.name}
-                <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px' }}>
-                  {selectedTool ? 'Tool' : selectedResource ? 'Resource' : 'Prompt'}
-                </Badge>
-              </CardTitle>
-              {currentItem.description && (
-                <CardDescription className="text-sm" style={{ marginTop: '8px' }}>
+              {isRequestCollapsed ? (
+                <div className="flex items-center text-base font-mono" style={{ gap: '12px' }}>
+                  {currentItem.name}
+                  <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px' }}>
+                    {selectedTool ? 'Tool' : selectedResource ? 'Resource' : 'Prompt'}
+                  </Badge>
+                  {getStatusIcon()}
+                  {duration && (
+                    <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px', gap: '4px' }}>
+                      <Clock className="h-3 w-3" />
+                      {duration}ms
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <CardTitle className="flex items-center text-base font-mono" style={{ gap: '12px' }}>
+                  {currentItem.name}
+                  <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px' }}>
+                    {selectedTool ? 'Tool' : selectedResource ? 'Resource' : 'Prompt'}
+                  </Badge>
+                </CardTitle>
+              )}
+              {!isRequestCollapsed && currentItem.description && (
+                <CardDescription className="text-sm transition-opacity duration-300" style={{ marginTop: '8px' }}>
                   {currentItem.description}
                 </CardDescription>
               )}
             </div>
-            <Button 
-              onClick={handleExecute} 
-              disabled={loading}
-              className="transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
-              style={{ marginLeft: '24px', height: '40px', padding: '8px 16px', gap: '8px' }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Executing...
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" />
-                  Execute
-                </>
-              )}
-            </Button>
+            <div className="flex items-center" style={{ marginLeft: '24px', marginRight: '56px' }}>
+              <Button 
+                onClick={handleExecute} 
+                disabled={loading}
+                className="transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                style={{ height: '40px', padding: '8px 16px', gap: '8px', width: '100px' }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {isRequestCollapsed ? '' : 'Executing...'}
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    {isRequestCollapsed ? '' : 'Execute'}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent style={{ padding: '0 24px 24px 24px' }}>
-          {selectedResource ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <Label className="text-sm">Resource URI</Label>
-                <Input value={selectedResource.uri} readOnly className="font-mono text-sm" style={{ marginTop: '8px', height: '40px' }} />
-              </div>
-              {selectedResource.mimeType && (
-                <div>
-                  <Label className="text-sm">MIME Type</Label>
-                  <div style={{ marginTop: '8px' }}>
-                    <Badge variant="outline" className="font-mono text-xs" style={{ padding: '4px 8px' }}>
-                      {selectedResource.mimeType}
-                    </Badge>
-                  </div>
-                </div>
-              )}
-            </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleRequestCollapse}
+          className="absolute top-3 right-3 transition-all duration-200 hover:bg-accent focus:ring-2 focus:ring-ring focus:ring-offset-1"
+          style={{ height: '40px', width: '40px', padding: '8px' }}
+          aria-label={isRequestCollapsed ? 'Expand request card' : 'Collapse request card'}
+        >
+          {isRequestCollapsed ? (
+            <ChevronDown className="h-4 w-4" />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <Label className="text-sm">Parameters</Label>
-              {renderParameters()}
-            </div>
+            <ChevronUp className="h-4 w-4" />
           )}
-        </CardContent>
+        </Button>
+        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+          isRequestCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+        }`}>
+          <CardContent style={{ padding: '0 24px 24px 24px' }}>
+            {selectedResource ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <Label className="text-sm">Resource URI</Label>
+                  <Input value={selectedResource.uri} readOnly className="font-mono text-sm" style={{ marginTop: '8px', height: '40px' }} />
+                </div>
+                {selectedResource.mimeType && (
+                  <div>
+                    <Label className="text-sm">MIME Type</Label>
+                    <div style={{ marginTop: '8px' }}>
+                      <Badge variant="outline" className="font-mono text-xs" style={{ padding: '4px 8px' }}>
+                        {selectedResource.mimeType}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <Label className="text-sm">Parameters</Label>
+                {renderParameters()}
+              </div>
+            )}
+          </CardContent>
+        </div>
       </Card>
 
       {/* Response Section */}
-      <Card className="flex-1 min-h-0 border border-border shadow-lg bg-card backdrop-blur-sm">
-        <CardHeader style={{ padding: '24px' }}>
-          <div className="flex items-center justify-between">
+      <Card className={`border border-border shadow-lg bg-card backdrop-blur-sm transition-all duration-500 ease-in-out ${
+        !isRequestCollapsed ? 'flex-shrink-0 py-0' : 'flex-1 min-h-0'
+      }`} style={{ height: !isRequestCollapsed ? '64px' : 'auto' }}>
+        <CardHeader style={{ padding: !isRequestCollapsed ? '0' : '24px' }}>
+          <div className="flex items-center justify-between" style={{ padding: !isRequestCollapsed ? '16px 24px 10px 24px' : '0' }}>
             <div className="flex items-center" style={{ gap: '12px' }}>
-              <CardTitle className="text-base">Response</CardTitle>
-              {getStatusIcon()}
-              {duration && (
-                <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px', gap: '4px' }}>
-                  <Clock className="h-3 w-3" />
-                  {duration}ms
-                </Badge>
+              {!isRequestCollapsed ? (
+                <div className="flex items-center text-base font-semibold" style={{ gap: '12px' }}>
+                  Response
+                  {getStatusIcon()}
+                  {duration && (
+                    <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px', gap: '4px' }}>
+                      <Clock className="h-3 w-3" />
+                      {duration}ms
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center" style={{ gap: '12px' }}>
+                  <span className="text-base font-semibold">Response</span>
+                  {getStatusIcon()}
+                  {duration && (
+                    <Badge variant="outline" className="text-xs" style={{ padding: '4px 8px', gap: '4px' }}>
+                      <Clock className="h-3 w-3" />
+                      {duration}ms
+                    </Badge>
+                  )}
+                </div>
               )}
             </div>
-            {response && (
+            {response && isRequestCollapsed && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -327,7 +389,10 @@ export function RequestResponse({
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-hidden" style={{ padding: '24px' }}>
+        <div className={`flex-1 overflow-hidden transition-all duration-500 ease-in-out ${
+          !isRequestCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+        }`}>
+          <CardContent className="flex-1 overflow-hidden" style={{ padding: '24px' }}>
           {error && (
             <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg" style={{ padding: '20px', marginBottom: '20px' }}>
               <strong>Error:</strong> {error}
@@ -411,7 +476,8 @@ export function RequestResponse({
               <p className="text-sm">Execute a request to see the response</p>
             </div>
           )}
-        </CardContent>
+          </CardContent>
+        </div>
       </Card>
     </div>
   );
