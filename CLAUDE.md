@@ -58,3 +58,22 @@ Uses path mapping with `@/*` pointing to `src/*` for clean imports. Strict TypeS
 2. `useMCPConnection` hook manages state and delegates to appropriate client
 3. API routes handle server-side connections and proxy requests
 4. UI components reactively update based on connection state changes
+
+### Client-Side vs Server-Side Connection Strategy
+
+**When to use MCPClient (client-side)**:
+- Direct browser connections for real-time responsiveness
+- Simple authentication scenarios
+- Development and testing
+
+**When to use MCPAPIClient (server-side proxy)**:
+- Complex authentication requiring server-side secrets
+- CORS restrictions from MCP servers
+- Production deployments requiring enhanced security
+
+### Storage and State Persistence
+
+**Connection Storage**: Currently uses in-memory Map in `connections.ts`. For production scaling, consider:
+- Redis for distributed session storage
+- Database persistence for connection configurations
+- Client-side localStorage for user preferences (themes, UI state)
