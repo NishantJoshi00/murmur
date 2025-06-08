@@ -194,7 +194,7 @@ export function RequestResponse({
     }
     
     return (
-      <ScrollArea className="h-60 w-full">
+      <ScrollArea className="h-80 w-full">
         <div className="pr-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {parameterKeys.map(paramName => {
             const paramSchema = schema[paramName];
@@ -242,12 +242,17 @@ export function RequestResponse({
     );
   }
 
+  const truncateDescription = (description: string, maxLength: number = 300) => {
+    if (description.length <= maxLength) return description;
+    return description.slice(0, maxLength) + '...';
+  }
+
   return (
     <div className="h-full flex flex-col" style={{ gap: '24px' }}>
       {/* Request Section */}
       <Card className={`relative border border-border shadow-lg bg-card backdrop-blur-sm transition-all duration-500 ease-in-out ${
         isRequestCollapsed ? 'flex-shrink-0 py-0' : 'flex-1'
-      }`} style={{ height: isRequestCollapsed ? '64px' : 'auto' }}>
+      }`} style={{ height: isRequestCollapsed ? '64px' : 'auto', justifyContent: "space-between" }}>
         <CardHeader style={{ padding: isRequestCollapsed ? '0' : '24px' }}>
           <div className="flex items-center justify-between" style={{ padding: isRequestCollapsed ? '12px 24px' : '0' }}>
             <div className="flex-1">
@@ -275,7 +280,7 @@ export function RequestResponse({
               )}
               {!isRequestCollapsed && currentItem.description && (
                 <CardDescription className="text-sm transition-opacity duration-300" style={{ marginTop: '8px' }}>
-                  {currentItem.description}
+                  {truncateDescription(currentItem.description, 300)}
                 </CardDescription>
               )}
             </div>
