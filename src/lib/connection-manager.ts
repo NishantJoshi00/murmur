@@ -70,11 +70,14 @@ class EncryptionManager {
   }
 }
 
+import type { ConnectionMode } from './mcp-interface';
+
 export interface ConnectionProfile {
   id: string;
   name: string;
   url: string;
   headers: Record<string, string>;
+  mode?: ConnectionMode;
   createdAt: string;
   lastUsed?: string;
 }
@@ -88,6 +91,7 @@ export class ConnectionManager {
     const newConnection: ConnectionProfile = {
       ...profile,
       id: crypto.randomUUID(),
+      mode: profile.mode || 'proxy', // Default to proxy mode
       createdAt: new Date().toISOString()
     };
     
@@ -169,6 +173,10 @@ export class ConnectionManager {
       } catch {
         errors.push('Invalid URL format');
       }
+    }
+    
+    if (profile.mode && !['proxy', 'direct'].includes(profile.mode)) {
+      errors.push('Invalid connection mode');
     }
     
     return errors;

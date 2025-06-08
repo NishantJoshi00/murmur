@@ -5,20 +5,19 @@ import {
   ModalContent,
   ModalClose,
 } from '@/components/ui/modal';
-import type { ConnectionState } from '@/types/mcp';
-import type { ConnectionProfile } from '@/lib/connection-manager';
+import type { ConnectionState, ConnectionMode } from '@/types/mcp';
 import { ConnectionForm } from '@/components/connection-form';
 
 interface ConnectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   connectionState: ConnectionState;
-  savedConnections: ConnectionProfile[];
-  onConnect: (url: string, headers: Record<string, string>, connectionName?: string) => Promise<void>;
-  onConnectWithProfile: (profileId: string) => Promise<void>;
+  savedConnections: any[];
+  onSaveConnection: (name: string, url: string, headers: Record<string, string>, mode?: ConnectionMode) => Promise<void>;
   onDisconnect: () => Promise<void>;
-  onSaveConnection: (name: string, url: string, headers: Record<string, string>) => Promise<void>;
-  onDeleteConnection: (id: string) => Promise<void>;
+  showDeleteButton?: boolean;
+  onDeleteCurrentConnection?: () => Promise<void>;
+  onTestConnection?: (url: string, headers: Record<string, string>, mode?: ConnectionMode) => Promise<void>;
 }
 
 export function ConnectionModal({
@@ -26,11 +25,11 @@ export function ConnectionModal({
   onOpenChange,
   connectionState,
   savedConnections,
-  onConnect,
-  onConnectWithProfile,
-  onDisconnect,
   onSaveConnection,
-  onDeleteConnection,
+  onDisconnect,
+  showDeleteButton,
+  onDeleteCurrentConnection,
+  onTestConnection
 }: ConnectionModalProps) {
 
   return (
@@ -41,11 +40,12 @@ export function ConnectionModal({
           <ConnectionForm
             connectionState={connectionState}
             savedConnections={savedConnections}
-            onConnect={onConnect}
-            onConnectWithProfile={onConnectWithProfile}
-            onDisconnect={onDisconnect}
             onSaveConnection={onSaveConnection}
-            onDeleteConnection={onDeleteConnection}
+            onDisconnect={onDisconnect}
+            showDeleteButton={showDeleteButton}
+            onDeleteCurrentConnection={onDeleteCurrentConnection}
+            onTestConnection={onTestConnection}
+            onClose={() => onOpenChange(false)}
           />
         </div>
       </ModalContent>

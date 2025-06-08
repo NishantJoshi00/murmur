@@ -1,13 +1,16 @@
 import type { Tool, Resource, Prompt, ServerCapabilities, Implementation } from '@modelcontextprotocol/sdk/types.js';
+import type { ConnectionMode } from '@/lib/mcp-interface';
 
 export type { Tool, Resource, Prompt, ServerCapabilities, Implementation };
+export type { ConnectionMode };
 
 export interface ConnectionState {
   status: "disconnected" | "connecting" | "connected" | "error";
   url?: string;
   headers?: Record<string, string>;
   connectionName?: string;
-  serverInfo?: MCPServerInfo;
+  mode?: ConnectionMode;
+  serverInfo?: Implementation;
   error?: string;
 }
 

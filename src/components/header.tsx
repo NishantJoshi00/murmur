@@ -1,63 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeSelector } from '@/components/theme-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings, Wifi, WifiOff, Plus } from 'lucide-react';
 import type { ConnectionState } from '@/types/mcp';
-
-interface SavedConnection {
-  id: string;
-  name: string;
-  url: string;
-  headers: Record<string, string>;
-}
+import type { ConnectionProfile } from '@/lib/connection-manager';
 
 interface HeaderProps {
   connectionState: ConnectionState;
+  savedConnections: ConnectionProfile[];
   onOpenConnectionModal: () => void;
+  onOpenCreateModal?: () => void;
   onDisconnect: () => void;
   onConnectToSaved: (url: string, headers: Record<string, string>, connectionName: string) => void;
-  refreshConnections?: () => void;
 }
 
-export function Header({ connectionState, onOpenConnectionModal, onDisconnect, onConnectToSaved }: HeaderProps) {
-  const [savedConnections, setSavedConnections] = useState<SavedConnection[]>([]);
-
-  // Load saved connections from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('mcp-saved-connections');
-    if (saved) {
-      try {
-        const connections = JSON.parse(saved);
-        setSavedConnections(connections);
-      } catch (error) {
-        console.error('Failed to parse saved connections:', error);
-        setSavedConnections([]);
-      }
-    }
-  }, []);
-
-  // Listen for changes to saved connections in other components
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem('mcp-saved-connections');
-      if (saved) {
-        try {
-          const connections = JSON.parse(saved);
-          setSavedConnections(connections);
-        } catch (error) {
-          console.error('Failed to parse saved connections:', error);
-          setSavedConnections([]);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+export function Header({ connectionState, savedConnections, onOpenConnectionModal, onOpenCreateModal, onDisconnect, onConnectToSaved }: HeaderProps) {
   const getConnectionStatus = () => {
     switch (connectionState.status) {
       case 'connected':
@@ -127,7 +87,7 @@ export function Header({ connectionState, onOpenConnectionModal, onDisconnect, o
 
   const handleServerSelection = (value: string) => {
     if (value === 'create-new') {
-      onOpenConnectionModal();
+      onOpenCreateModal ? onOpenCreateModal() : onOpenConnectionModal();
     } else {
       const connection = savedConnections.find(conn => conn.id === value);
       if (connection) {

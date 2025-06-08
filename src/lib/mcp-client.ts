@@ -1,8 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import type { Tool, Resource, Prompt, Implementation } from '@modelcontextprotocol/sdk/types.js';
+import type { IMCPClient } from './mcp-interface';
 
-export class MCPClient {
+export class MCPClient implements IMCPClient {
   private client: Client | null = null;
   private transport: SSEClientTransport | null = null;
   private isConnected = false;

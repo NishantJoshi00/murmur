@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { MCPAPIClient } from '@/lib/api-client';
 import { ConnectionManager, type ConnectionProfile } from '@/lib/connection-manager';
-import type { ConnectionState, Tool, Resource, Prompt, Implementation } from '@/types/mcp';
+import { createMCPClient, getDefaultConnectionMode } from '@/lib/mcp-client-factory';
+import type { ConnectionState, Tool, Resource, Prompt, Implementation, ConnectionMode } from '@/types/mcp';
+import type { IMCPClient } from '@/lib/mcp-interface';
 
 export function useMCPConnection() {
   const [connectionState, setConnectionState] = useState<ConnectionState>({
@@ -11,7 +12,7 @@ export function useMCPConnection() {
   });
   const [serverInfo, setServerInfo] = useState<Implementation | null>(null);
   const [savedConnections, setSavedConnections] = useState<ConnectionProfile[]>([]);
-  const clientRef = useRef<MCPAPIClient | null>(null);
+  const clientRef = useRef<IMCPClient | null>(null);
   const currentConnectionIdRef = useRef<string | null>(null);
 
   // Load saved connections on mount
@@ -28,12 +29,18 @@ export function useMCPConnection() {
     }
   }, []);
 
-  const connect = useCallback(async (url: string, headers: Record<string, string> = {}, connectionName?: string) => {
+  const connect = useCallback(async (
+    url: string, 
+    headers: Record<string, string> = {}, 
+    connectionName?: string,
+    mode: ConnectionMode = getDefaultConnectionMode()
+  ) => {
     setConnectionState({
       status: 'connecting',
       url,
       headers,
-      connectionName
+      connectionName,
+      mode
     });
 
     try {
@@ -41,8 +48,8 @@ export function useMCPConnection() {
         await clientRef.current.disconnect();
       }
 
-      clientRef.current = new MCPAPIClient(url, headers);
-      const implementation = await clientRef.current.connect();
+      clientRef.current = createMCPClient(mode, url, headers);
+      const implementation = await clientRef.current.connect(url, headers);
       
       setServerInfo(implementation);
       setConnectionState({
@@ -50,6 +57,7 @@ export function useMCPConnection() {
         url,
         headers,
         connectionName,
+        mode,
         serverInfo: implementation
       });
 
@@ -67,6 +75,7 @@ export function useMCPConnection() {
         url,
         headers,
         connectionName,
+        mode,
         error: errorMessage
       });
       throw error;
@@ -80,7 +89,7 @@ export function useMCPConnection() {
     }
     
     currentConnectionIdRef.current = profileId;
-    return await connect(profile.url, profile.headers, profile.name);
+    return await connect(profile.url, profile.headers, profile.name, profile.mode);
   }, [connect]);
 
   const disconnect = useCallback(async () => {

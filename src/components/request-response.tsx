@@ -392,7 +392,7 @@ export function RequestResponse({
         <div className={`flex-1 overflow-hidden transition-all duration-500 ease-in-out ${
           !isRequestCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
         }`}>
-          <CardContent className="flex-1 overflow-hidden" style={{ padding: '24px' }}>
+          <CardContent className="flex-1 overflow-hidden" style={{ padding: '24px', marginTop: '0' }}>
           {error && (
             <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg" style={{ padding: '20px', marginBottom: '20px' }}>
               <strong>Error:</strong> {error}

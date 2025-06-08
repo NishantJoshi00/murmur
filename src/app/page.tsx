@@ -31,6 +31,7 @@ export default function Home() {
   const [selectedResource, setSelectedResource] = useState<Resource | undefined>();
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | undefined>();
   const [connectionModalOpen, setConnectionModalOpen] = useState(false);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   const handleSelectTool = (tool: Tool) => {
     setSelectedTool(tool);
@@ -54,12 +55,41 @@ export default function Home() {
     await connect(url, headers, connectionName);
   };
 
+  const handleSaveAndConnect = async (name: string, url: string, headers: Record<string, string>, mode?: any) => {
+    await saveConnection(name, url, headers, mode);
+    await connect(url, headers, name, mode);
+  };
+
+  const handleOpenManageModal = () => {
+    setShowDeleteButton(true);
+    setConnectionModalOpen(true);
+  };
+
+  const handleOpenConnectModal = () => {
+    setShowDeleteButton(false);
+    setConnectionModalOpen(true);
+  };
+
+  const handleDeleteCurrentConnection = async () => {
+    // Find current connection and delete it
+    if (connectionState.connectionName) {
+      const connection = savedConnections.find(c => c.name === connectionState.connectionName);
+      if (connection) {
+        await deleteConnection(connection.id);
+        await disconnect();
+        setConnectionModalOpen(false);
+      }
+    }
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col">
       {/* Header */}
       <Header
         connectionState={connectionState}
-        onOpenConnectionModal={() => setConnectionModalOpen(true)}
+        savedConnections={savedConnections}
+        onOpenConnectionModal={handleOpenManageModal}
+        onOpenCreateModal={handleOpenConnectModal}
         onDisconnect={disconnect}
         onConnectToSaved={handleConnectToSaved}
       />
@@ -106,11 +136,11 @@ export default function Home() {
         onOpenChange={setConnectionModalOpen}
         connectionState={connectionState}
         savedConnections={savedConnections}
-        onConnect={connect}
-        onConnectWithProfile={connectWithProfile}
+        onSaveConnection={handleSaveAndConnect}
         onDisconnect={disconnect}
-        onSaveConnection={saveConnection}
-        onDeleteConnection={deleteConnection}
+        showDeleteButton={showDeleteButton}
+        onDeleteCurrentConnection={handleDeleteCurrentConnection}
+        onTestConnection={connect}
       />
     </div>
   );

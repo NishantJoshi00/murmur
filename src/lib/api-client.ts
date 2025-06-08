@@ -1,6 +1,7 @@
 import type { Tool, Resource, Prompt, Implementation } from '@/types/mcp';
+import type { IMCPClient } from './mcp-interface';
 
-export class MCPAPIClient {
+export class MCPAPIClient implements IMCPClient {
   private url: string;
   private headers: Record<string, string>;
 
@@ -9,7 +10,10 @@ export class MCPAPIClient {
     this.headers = headers;
   }
 
-  async connect(): Promise<Implementation> {
+  async connect(url?: string, headers?: Record<string, string>): Promise<Implementation> {
+    // Update internal url and headers if provided
+    if (url) this.url = url;
+    if (headers) this.headers = headers;
     const response = await fetch('/api/mcp/connect', {
       method: 'POST',
       headers: {
@@ -170,6 +174,11 @@ export class MCPAPIClient {
     }
 
     return data.result;
+  }
+
+  getConnectionStatus(): boolean {
+    // For API client, we consider it "connected" if we have a URL
+    return !!this.url;
   }
 
   getConnectionDetails(): { url: string; headers: Record<string, string> } {
