@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MCP Server Viewer",
+  title: "Murmur",
   description: "Connect to and explore Model Context Protocol servers",
 };
 

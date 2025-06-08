@@ -110,7 +110,7 @@ export function Header({ connectionState, savedConnections, onOpenConnectionModa
         {/* Left section - Title */}
         <div className="flex items-center" style={{ gap: '24px' }}>
           <div>
-            <h1 className="text-xl font-normal">MCP Server Viewer</h1>
+            <h1 className="text-xl font-normal">Murmur</h1>
             <p className="text-sm text-muted-foreground">
               Model Context Protocol Explorer
             </p>
