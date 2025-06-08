@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { MCPAPIClient } from '@/lib/api-client';
+import { ConnectionManager, type ConnectionProfile } from '@/lib/connection-manager';
 import type { ConnectionState, Tool, Resource, Prompt, Implementation } from '@/types/mcp';
 
 export function useMCPConnection() {
@@ -9,7 +10,23 @@ export function useMCPConnection() {
     status: 'disconnected'
   });
   const [serverInfo, setServerInfo] = useState<Implementation | null>(null);
+  const [savedConnections, setSavedConnections] = useState<ConnectionProfile[]>([]);
   const clientRef = useRef<MCPAPIClient | null>(null);
+  const currentConnectionIdRef = useRef<string | null>(null);
+
+  // Load saved connections on mount
+  useEffect(() => {
+    loadSavedConnections();
+  }, []);
+
+  const loadSavedConnections = useCallback(async () => {
+    try {
+      const connections = await ConnectionManager.getAllConnections();
+      setSavedConnections(connections);
+    } catch (error) {
+      console.error('Failed to load saved connections:', error);
+    }
+  }, []);
 
   const connect = useCallback(async (url: string, headers: Record<string, string> = {}, connectionName?: string) => {
     setConnectionState({
@@ -24,8 +41,8 @@ export function useMCPConnection() {
         await clientRef.current.disconnect();
       }
 
-      clientRef.current = new MCPAPIClient();
-      const implementation = await clientRef.current.connect(url, headers);
+      clientRef.current = new MCPAPIClient(url, headers);
+      const implementation = await clientRef.current.connect();
       
       setServerInfo(implementation);
       setConnectionState({
@@ -35,6 +52,12 @@ export function useMCPConnection() {
         connectionName,
         serverInfo: implementation
       });
+
+      // Mark connection as used if it's a saved one
+      if (currentConnectionIdRef.current) {
+        await ConnectionManager.markAsUsed(currentConnectionIdRef.current);
+        await loadSavedConnections(); // Refresh the list
+      }
 
       return implementation;
     } catch (error) {
@@ -48,7 +71,17 @@ export function useMCPConnection() {
       });
       throw error;
     }
-  }, []);
+  }, [loadSavedConnections]);
+
+  const connectWithProfile = useCallback(async (profileId: string) => {
+    const profile = await ConnectionManager.getConnection(profileId);
+    if (!profile) {
+      throw new Error('Connection profile not found');
+    }
+    
+    currentConnectionIdRef.current = profileId;
+    return await connect(profile.url, profile.headers, profile.name);
+  }, [connect]);
 
   const disconnect = useCallback(async () => {
     if (clientRef.current) {
@@ -57,7 +90,24 @@ export function useMCPConnection() {
     }
     setServerInfo(null);
     setConnectionState({ status: 'disconnected' });
+    currentConnectionIdRef.current = null;
   }, []);
+
+  const saveConnection = useCallback(async (name: string, url: string, headers: Record<string, string>) => {
+    const errors = ConnectionManager.validateConnectionProfile({ name, url, headers });
+    if (errors.length > 0) {
+      throw new Error(errors.join(', '));
+    }
+
+    const id = await ConnectionManager.saveConnection({ name, url, headers });
+    await loadSavedConnections();
+    return id;
+  }, [loadSavedConnections]);
+
+  const deleteConnection = useCallback(async (id: string) => {
+    await ConnectionManager.deleteConnection(id);
+    await loadSavedConnections();
+  }, [loadSavedConnections]);
 
   const listTools = useCallback(async (): Promise<Tool[]> => {
     if (!clientRef.current) {
@@ -104,8 +154,13 @@ export function useMCPConnection() {
   return {
     connectionState,
     serverInfo,
+    savedConnections,
     connect,
+    connectWithProfile,
     disconnect,
+    saveConnection,
+    deleteConnection,
+    loadSavedConnections,
     listTools,
     listResources,
     listPrompts,

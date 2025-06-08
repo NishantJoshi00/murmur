@@ -1,76 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connections } from '@/lib/connections';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const connectionId = searchParams.get('connectionId');
-
-    if (!connectionId || !connections.has(connectionId)) {
-      return NextResponse.json(
-        { success: false, error: 'No active connection found' },
-        { status: 404 }
-      );
-    }
-
-    const connection = connections.get(connectionId);
-    if (!connection) {
-      return NextResponse.json(
-        { success: false, error: 'Connection not found' },
-        { status: 404 }
-      );
-    }
-
-    const response = await connection.client.listTools();
-    
-    return NextResponse.json({
-      success: true,
-      tools: response.tools
-    });
-
-  } catch (error) {
-    console.error('List tools error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
+async function createTemporaryConnection(url: string, headers: Record<string, string>) {
+  const transport = new SSEClientTransport(new URL(url), { headers });
+  const client = new Client(
+    { name: "murmur", version: "1.0.0" },
+    { capabilities: {} }
+  );
+  
+  await client.connect(transport);
+  return { client, transport };
 }
 
 export async function POST(request: NextRequest) {
+  let client: Client | null = null;
+  let transport: SSEClientTransport | null = null;
+  
   try {
-    const { connectionId, toolName, arguments: args } = await request.json();
-
-    if (!connectionId || !connections.has(connectionId)) {
-      return NextResponse.json(
-        { success: false, error: 'No active connection found' },
-        { status: 404 }
-      );
-    }
-
-    const connection = connections.get(connectionId);
-    if (!connection) {
-      return NextResponse.json(
-        { success: false, error: 'Connection not found' },
-        { status: 404 }
-      );
-    }
-
-    const response = await connection.client.callTool({
-      name: toolName,
-      arguments: args || {}
-    });
+    const body = await request.json();
     
-    return NextResponse.json({
-      success: true,
-      result: response
-    });
+    // Handle both list tools and call tool operations
+    if (body.operation === 'list') {
+      const { url, headers } = body;
+      ({ client, transport } = await createTemporaryConnection(url, headers || {}));
+      
+      const response = await client.listTools();
+      
+      return NextResponse.json({
+        success: true,
+        tools: response.tools
+      });
+      
+    } else if (body.operation === 'call') {
+      const { url, headers, toolName, arguments: args } = body;
+      ({ client, transport } = await createTemporaryConnection(url, headers || {}));
+      
+      const response = await client.callTool({
+        name: toolName,
+        arguments: args || {}
+      });
+      
+      return NextResponse.json({
+        success: true,
+        result: response
+      });
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'Invalid operation' },
+        { status: 400 }
+      );
+    }
 
   } catch (error) {
-    console.error('Call tool error:', error);
+    console.error('Tools API error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -78,5 +61,21 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    // Always clean up connections
+    if (client) {
+      try {
+        await client.close();
+      } catch (e) {
+        console.error('Error closing client:', e);
+      }
+    }
+    if (transport) {
+      try {
+        await transport.close();
+      } catch (e) {
+        console.error('Error closing transport:', e);
+      }
+    }
   }
 }

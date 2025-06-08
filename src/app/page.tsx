@@ -12,8 +12,12 @@ import type { Tool, Resource, Prompt } from '@/types/mcp';
 export default function Home() {
   const {
     connectionState,
+    savedConnections,
     connect,
+    connectWithProfile,
     disconnect,
+    saveConnection,
+    deleteConnection,
     listTools,
     listResources,
     listPrompts,
@@ -101,8 +105,12 @@ export default function Home() {
         open={connectionModalOpen}
         onOpenChange={setConnectionModalOpen}
         connectionState={connectionState}
+        savedConnections={savedConnections}
         onConnect={connect}
+        onConnectWithProfile={connectWithProfile}
         onDisconnect={disconnect}
+        onSaveConnection={saveConnection}
+        onDeleteConnection={deleteConnection}
       />
     </div>
   );

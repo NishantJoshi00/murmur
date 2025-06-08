@@ -1,23 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-import { connections } from '@/lib/connections';
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, headers, connectionId } = await request.json();
+    const { url, headers } = await request.json();
 
-    // Close existing connection if any
-    if (connections.has(connectionId)) {
-      const existing = connections.get(connectionId);
-      if (existing) {
-        await existing.client.close();
-        await existing.transport.close();
-        connections.delete(connectionId);
-      }
-    }
-
-    // Create new connection
+    // Create a temporary connection to test and get server info
     const transport = new SSEClientTransport(new URL(url), {
       headers: headers || {}
     });
@@ -34,8 +23,9 @@ export async function POST(request: NextRequest) {
 
     const result = await client.connect(transport);
     
-    // Store the connection
-    connections.set(connectionId, { client, transport, url, headers: headers || {} });
+    // Close the test connection immediately
+    await client.close();
+    await transport.close();
 
     return NextResponse.json({
       success: true,
@@ -54,28 +44,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
-  try {
-    const { connectionId } = await request.json();
-    
-    if (connections.has(connectionId)) {
-      const connection = connections.get(connectionId);
-      if (connection) {
-        await connection.client.close();
-        await connection.transport.close();
-        connections.delete(connectionId);
-      }
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('MCP disconnect error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
+// DELETE endpoint is no longer needed since we don't store connections

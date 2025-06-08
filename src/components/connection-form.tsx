@@ -7,13 +7,19 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Trash2, Loader2, Save, History } from 'lucide-react';
 import type { ConnectionState } from '@/types/mcp';
+import type { ConnectionProfile } from '@/lib/connection-manager';
 
 interface ConnectionFormProps {
   connectionState: ConnectionState;
-  onConnect: (url: string, headers: Record<string, string>) => Promise<void>;
+  savedConnections: ConnectionProfile[];
+  onConnect: (url: string, headers: Record<string, string>, name?: string) => Promise<void>;
+  onConnectWithProfile: (profileId: string) => Promise<void>;
   onDisconnect: () => Promise<void>;
+  onSaveConnection: (name: string, url: string, headers: Record<string, string>) => Promise<void>;
+  onDeleteConnection: (id: string) => Promise<void>;
 }
 
 interface Header {
@@ -22,8 +28,18 @@ interface Header {
   value: string;
 }
 
-export function ConnectionForm({ connectionState, onConnect, onDisconnect }: ConnectionFormProps) {
+export function ConnectionForm({ 
+  connectionState, 
+  savedConnections,
+  onConnect, 
+  onConnectWithProfile,
+  onDisconnect,
+  onSaveConnection,
+  onDeleteConnection
+}: ConnectionFormProps) {
   const [url, setUrl] = useState(connectionState.url || 'http://localhost:3001/sse');
+  const [connectionName, setConnectionName] = useState('');
+  const [selectedConnection, setSelectedConnection] = useState<string>('');
   const [headers, setHeaders] = useState<Header[]>([
     { id: '1', key: 'Authorization', value: 'Bearer your-token' }
   ]);
@@ -40,6 +56,22 @@ export function ConnectionForm({ connectionState, onConnect, onDisconnect }: Con
     setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h));
   };
 
+  const loadConnection = (profileId: string) => {
+    const profile = savedConnections.find(c => c.id === profileId);
+    if (profile) {
+      setUrl(profile.url);
+      setConnectionName(profile.name);
+      setHeaders(
+        Object.entries(profile.headers).map(([key, value], index) => ({
+          id: `loaded-${index}`,
+          key,
+          value
+        }))
+      );
+      setSelectedConnection(profileId);
+    }
+  };
+
   const handleConnect = async () => {
     const headersObj = headers.reduce((acc, header) => {
       if (header.key && header.value) {
@@ -48,7 +80,32 @@ export function ConnectionForm({ connectionState, onConnect, onDisconnect }: Con
       return acc;
     }, {} as Record<string, string>);
 
-    await onConnect(url, headersObj);
+    if (selectedConnection) {
+      await onConnectWithProfile(selectedConnection);
+    } else {
+      await onConnect(url, headersObj, connectionName || undefined);
+    }
+  };
+
+  const handleSaveConnection = async () => {
+    if (!connectionName.trim()) {
+      alert('Please enter a connection name');
+      return;
+    }
+
+    const headersObj = headers.reduce((acc, header) => {
+      if (header.key && header.value) {
+        acc[header.key] = header.value;
+      }
+      return acc;
+    }, {} as Record<string, string>);
+
+    try {
+      await onSaveConnection(connectionName, url, headersObj);
+      alert('Connection saved successfully');
+    } catch (error) {
+      alert(`Failed to save connection: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const getStatusBadge = () => {
@@ -78,6 +135,72 @@ export function ConnectionForm({ connectionState, onConnect, onDisconnect }: Con
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {savedConnections.length > 0 && (
+          <>
+            <div className="space-y-2">
+              <Label>Saved Connections</Label>
+              <Select value={selectedConnection} onValueChange={(value) => {
+                if (value === 'new') {
+                  setSelectedConnection('');
+                  setUrl('http://localhost:3001/sse');
+                  setConnectionName('');
+                  setHeaders([{ id: '1', key: 'Authorization', value: 'Bearer your-token' }]);
+                } else {
+                  loadConnection(value);
+                }
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a saved connection or create new" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">
+                    <div className="flex items-center">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create new connection
+                    </div>
+                  </SelectItem>
+                  {savedConnections
+                    .sort((a, b) => new Date(b.lastUsed || b.createdAt).getTime() - new Date(a.lastUsed || a.createdAt).getTime())
+                    .map((conn) => (
+                    <SelectItem key={conn.id} value={conn.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <History className="h-4 w-4 mr-2" />
+                          <span>{conn.name}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onDeleteConnection(conn.id);
+                          }}
+                          className="ml-2 h-6 w-6 p-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="connectionName">Connection Name (optional)</Label>
+          <Input
+            id="connectionName"
+            value={connectionName}
+            onChange={(e) => setConnectionName(e.target.value)}
+            placeholder="My MCP Server"
+            disabled={connectionState.status === 'connecting'}
+          />
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="url">SSE URL</Label>
           <Input
@@ -163,15 +286,27 @@ export function ConnectionForm({ connectionState, onConnect, onDisconnect }: Con
               Disconnect
             </Button>
           ) : (
-            <Button
-              onClick={handleConnect}
-              disabled={connectionState.status === 'connecting' || !url}
-            >
-              {connectionState.status === 'connecting' && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <>
+              <Button
+                onClick={handleConnect}
+                disabled={connectionState.status === 'connecting' || !url}
+              >
+                {connectionState.status === 'connecting' && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
+                Connect
+              </Button>
+              {!selectedConnection && connectionName && (
+                <Button
+                  onClick={handleSaveConnection}
+                  variant="outline"
+                  disabled={connectionState.status === 'connecting' || !url || !connectionName.trim()}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
               )}
-              Connect
-            </Button>
+            </>
           )}
         </div>
       </CardContent>

@@ -1,22 +1,23 @@
 import type { Tool, Resource, Prompt, Implementation } from '@/types/mcp';
 
 export class MCPAPIClient {
-  private connectionId: string;
+  private url: string;
+  private headers: Record<string, string>;
 
-  constructor() {
-    this.connectionId = Math.random().toString(36).substring(7);
+  constructor(url: string, headers: Record<string, string> = {}) {
+    this.url = url;
+    this.headers = headers;
   }
 
-  async connect(url: string, headers: Record<string, string> = {}): Promise<Implementation> {
+  async connect(): Promise<Implementation> {
     const response = await fetch('/api/mcp/connect', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url,
-        headers,
-        connectionId: this.connectionId
+        url: this.url,
+        headers: this.headers
       })
     });
 
@@ -30,25 +31,23 @@ export class MCPAPIClient {
   }
 
   async disconnect(): Promise<void> {
-    const response = await fetch('/api/mcp/connect', {
-      method: 'DELETE',
+    // No-op since we don't store connections server-side anymore
+    return Promise.resolve();
+  }
+
+  async listTools(): Promise<Tool[]> {
+    const response = await fetch('/api/mcp/tools', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        connectionId: this.connectionId
+        operation: 'list',
+        url: this.url,
+        headers: this.headers
       })
     });
 
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to disconnect');
-    }
-  }
-
-  async listTools(): Promise<Tool[]> {
-    const response = await fetch(`/api/mcp/tools?connectionId=${this.connectionId}`);
     const data = await response.json();
     
     if (!data.success) {
@@ -65,7 +64,9 @@ export class MCPAPIClient {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        connectionId: this.connectionId,
+        operation: 'call',
+        url: this.url,
+        headers: this.headers,
         toolName: name,
         arguments: arguments_
       })
@@ -81,7 +82,18 @@ export class MCPAPIClient {
   }
 
   async listResources(): Promise<Resource[]> {
-    const response = await fetch(`/api/mcp/resources?connectionId=${this.connectionId}`);
+    const response = await fetch('/api/mcp/resources', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        operation: 'list',
+        url: this.url,
+        headers: this.headers
+      })
+    });
+
     const data = await response.json();
     
     if (!data.success) {
@@ -92,7 +104,19 @@ export class MCPAPIClient {
   }
 
   async readResource(uri: string): Promise<any> {
-    const response = await fetch(`/api/mcp/resources?connectionId=${this.connectionId}&uri=${encodeURIComponent(uri)}`);
+    const response = await fetch('/api/mcp/resources', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        operation: 'read',
+        url: this.url,
+        headers: this.headers,
+        uri
+      })
+    });
+
     const data = await response.json();
     
     if (!data.success) {
@@ -103,7 +127,18 @@ export class MCPAPIClient {
   }
 
   async listPrompts(): Promise<Prompt[]> {
-    const response = await fetch(`/api/mcp/prompts?connectionId=${this.connectionId}`);
+    const response = await fetch('/api/mcp/prompts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        operation: 'list',
+        url: this.url,
+        headers: this.headers
+      })
+    });
+
     const data = await response.json();
     
     if (!data.success) {
@@ -120,7 +155,9 @@ export class MCPAPIClient {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        connectionId: this.connectionId,
+        operation: 'get',
+        url: this.url,
+        headers: this.headers,
         promptName: name,
         arguments: arguments_
       })
@@ -135,7 +172,7 @@ export class MCPAPIClient {
     return data.result;
   }
 
-  getConnectionId(): string {
-    return this.connectionId;
+  getConnectionDetails(): { url: string; headers: Record<string, string> } {
+    return { url: this.url, headers: this.headers };
   }
 }

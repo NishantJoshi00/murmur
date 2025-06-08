@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build for production**: `npm run build`
 - **Start production server**: `npm start`
 - **Lint code**: `npm run lint`
+- **Type check**: No separate typecheck command - handled by Next.js build process
 
 ## Architecture Overview
 
@@ -16,9 +17,9 @@ This is Murmur, an MCP (Model Context Protocol) viewer built with Next.js 15, Re
 ### Core Architecture Patterns
 
 **Dual Client Architecture**: The app uses both client-side and server-side MCP clients:
-- `MCPClient` (src/lib/mcp-client.ts): Direct browser connection via SSE
+- `MCPClient` (src/lib/mcp-client.ts): Direct browser connection via SSE transport
 - `MCPAPIClient` (src/lib/api-client.ts): Proxied connection through Next.js API routes
-- Connection management handled server-side in `src/lib/connections.ts` with in-memory Map
+- Server-side connection store in `src/lib/connections.ts` using in-memory Map (for production, consider Redis)
 
 **State Management**: React hooks pattern with `useMCPConnection` hook centralizing connection state and MCP operations.
 
@@ -45,3 +46,15 @@ The app integrates with the Model Context Protocol SDK (`@modelcontextprotocol/s
 ### TypeScript Configuration
 
 Uses path mapping with `@/*` pointing to `src/*` for clean imports. Strict TypeScript configuration with Next.js plugin integration.
+
+### Development Notes
+
+**Theme System**: Uses `next-themes` with custom theme configurations stored in `src/lib/themes.json`. The `theme-manager.ts` handles theme switching logic.
+
+**Error Handling**: MCP connection errors are handled gracefully with connection state management in `useMCPConnection` hook. The app shows appropriate error states in the UI.
+
+**Data Flow**: 
+1. User initiates connection via `connection-form.tsx`
+2. `useMCPConnection` hook manages state and delegates to appropriate client
+3. API routes handle server-side connections and proxy requests
+4. UI components reactively update based on connection state changes
