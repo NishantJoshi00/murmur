@@ -17,6 +17,7 @@ export default function Home() {
     connectWithProfile,
     disconnect,
     saveConnection,
+    updateConnection,
     deleteConnection,
     listTools,
     listResources,
@@ -56,8 +57,26 @@ export default function Home() {
   };
 
   const handleSaveAndConnect = async (name: string, url: string, headers: Record<string, string>, mode?: any) => {
-    await saveConnection(name, url, headers, mode);
+    // Check if we're editing an existing connection
+    if (showDeleteButton && connectionState.connectionName) {
+      // Find the existing connection to get its ID
+      const existingConnection = savedConnections.find(c => c.name === connectionState.connectionName);
+      if (existingConnection) {
+        // Update existing connection
+        await updateConnection(existingConnection.id, { name, url, headers, mode });
+      } else {
+        // Fallback to creating new connection if existing one not found
+        await saveConnection(name, url, headers, mode);
+      }
+    } else {
+      // Create new connection
+      await saveConnection(name, url, headers, mode);
+    }
     await connect(url, headers, name, mode);
+  };
+
+  const handleTestConnection = async (url: string, headers: Record<string, string>, mode?: any) => {
+    await connect(url, headers, undefined, mode);
   };
 
   const handleOpenManageModal = () => {
@@ -140,7 +159,7 @@ export default function Home() {
         onDisconnect={disconnect}
         showDeleteButton={showDeleteButton}
         onDeleteCurrentConnection={handleDeleteCurrentConnection}
-        onTestConnection={connect}
+        onTestConnection={handleTestConnection}
       />
     </div>
   );

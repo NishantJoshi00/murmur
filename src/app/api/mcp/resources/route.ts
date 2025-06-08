@@ -3,76 +3,91 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 
 async function createTemporaryConnection(url: string, headers: Record<string, string>) {
-  const transport = new SSEClientTransport(new URL(url), { headers });
-  const client = new Client(
-    { name: "murmur", version: "1.0.0" },
-    { capabilities: {} }
-  );
-  
-  await client.connect(transport);
-  return { client, transport };
+    const transport = new SSEClientTransport(new URL(url), {
+        eventSourceInit: {
+            fetch: (url, init) => fetch(url, {
+                ...init,
+                headers: {
+                    ...headers,
+                }
+            })
+        },
+        requestInit: {
+            headers: {
+                ...headers,
+            },
+            credentials: "include"
+        }
+    });
+    const client = new Client(
+        { name: "murmur", version: "1.0.0" },
+        { capabilities: {} }
+    );
+
+    await client.connect(transport);
+    return { client, transport };
 }
 
 export async function POST(request: NextRequest) {
-  let client: Client | null = null;
-  let transport: SSEClientTransport | null = null;
-  
-  try {
-    const body = await request.json();
-    
-    // Handle both list resources and read resource operations
-    if (body.operation === 'list') {
-      const { url, headers } = body;
-      ({ client, transport } = await createTemporaryConnection(url, headers || {}));
-      
-      const response = await client.listResources();
-      
-      return NextResponse.json({
-        success: true,
-        resources: response.resources
-      });
-      
-    } else if (body.operation === 'read') {
-      const { url, headers, uri } = body;
-      ({ client, transport } = await createTemporaryConnection(url, headers || {}));
-      
-      const response = await client.readResource({ uri });
-      
-      return NextResponse.json({
-        success: true,
-        result: response
-      });
-    } else {
-      return NextResponse.json(
-        { success: false, error: 'Invalid operation' },
-        { status: 400 }
-      );
-    }
+    let client: Client | null = null;
+    let transport: SSEClientTransport | null = null;
 
-  } catch (error) {
-    console.error('Resources API error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  } finally {
-    // Always clean up connections
-    if (client) {
-      try {
-        await client.close();
-      } catch (e) {
-        console.error('Error closing client:', e);
-      }
+    try {
+        const body = await request.json();
+
+        // Handle both list resources and read resource operations
+        if (body.operation === 'list') {
+            const { url, headers } = body;
+            ({ client, transport } = await createTemporaryConnection(url, headers || {}));
+
+            const response = await client.listResources();
+
+            return NextResponse.json({
+                success: true,
+                resources: response.resources
+            });
+
+        } else if (body.operation === 'read') {
+            const { url, headers, uri } = body;
+            ({ client, transport } = await createTemporaryConnection(url, headers || {}));
+
+            const response = await client.readResource({ uri });
+
+            return NextResponse.json({
+                success: true,
+                result: response
+            });
+        } else {
+            return NextResponse.json(
+                { success: false, error: 'Invalid operation' },
+                { status: 400 }
+            );
+        }
+
+    } catch (error) {
+        console.error('Resources API error:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            },
+            { status: 500 }
+        );
+    } finally {
+        // Always clean up connections
+        if (client) {
+            try {
+                await client.close();
+            } catch (e) {
+                console.error('Error closing client:', e);
+            }
+        }
+        if (transport) {
+            try {
+                await transport.close();
+            } catch (e) {
+                console.error('Error closing transport:', e);
+            }
+        }
     }
-    if (transport) {
-      try {
-        await transport.close();
-      } catch (e) {
-        console.error('Error closing transport:', e);
-      }
-    }
-  }
 }

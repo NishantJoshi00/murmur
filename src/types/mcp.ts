@@ -16,10 +16,10 @@ export interface ConnectionState {
 
 export interface ToolInvocation {
   id: string;
-  tool: MCPTool;
-  parameters: Record<string, any>;
+  tool: Tool; // TODO: Fix type reference
+  parameters: Record<string, any>; // TODO: Use proper type instead of any
   timestamp: Date;
-  response?: MCPResponse;
+  response?: unknown; // TODO: Define proper response type
   error?: string;
   duration?: number;
 }

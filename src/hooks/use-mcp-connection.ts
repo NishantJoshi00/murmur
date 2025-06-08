@@ -102,15 +102,25 @@ export function useMCPConnection() {
     currentConnectionIdRef.current = null;
   }, []);
 
-  const saveConnection = useCallback(async (name: string, url: string, headers: Record<string, string>) => {
-    const errors = ConnectionManager.validateConnectionProfile({ name, url, headers });
+  const saveConnection = useCallback(async (name: string, url: string, headers: Record<string, string>, mode?: ConnectionMode) => {
+    const errors = ConnectionManager.validateConnectionProfile({ name, url, headers, mode });
     if (errors.length > 0) {
       throw new Error(errors.join(', '));
     }
 
-    const id = await ConnectionManager.saveConnection({ name, url, headers });
+    const id = await ConnectionManager.saveConnection({ name, url, headers, mode });
     await loadSavedConnections();
     return id;
+  }, [loadSavedConnections]);
+
+  const updateConnection = useCallback(async (id: string, updates: { name: string, url: string, headers: Record<string, string>, mode?: ConnectionMode }) => {
+    const errors = ConnectionManager.validateConnectionProfile(updates);
+    if (errors.length > 0) {
+      throw new Error(errors.join(', '));
+    }
+
+    await ConnectionManager.updateConnection(id, updates);
+    await loadSavedConnections();
   }, [loadSavedConnections]);
 
   const deleteConnection = useCallback(async (id: string) => {
@@ -168,6 +178,7 @@ export function useMCPConnection() {
     connectWithProfile,
     disconnect,
     saveConnection,
+    updateConnection,
     deleteConnection,
     loadSavedConnections,
     listTools,

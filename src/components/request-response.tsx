@@ -194,27 +194,29 @@ export function RequestResponse({
     }
     
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {parameterKeys.map(paramName => {
-          const paramSchema = schema[paramName];
-          const isRequired = requiredFields.includes(paramName);
-          
-          return (
-            <div key={paramName} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Label htmlFor={paramName} className="flex items-center text-sm" style={{ gap: '8px' }}>
-                <span className="font-mono">{paramName}</span>
-                {isRequired && <Badge variant="destructive" className="text-xs" style={{ padding: '2px 6px' }} aria-label="Required field">Required</Badge>}
-              </Label>
-              {paramSchema.description && (
-                <p id={`${paramName}-description`} className="text-sm text-muted-foreground">{paramSchema.description}</p>
-              )}
-              <div style={{ marginTop: '4px' }}>
-                {renderParameterInput(paramName, paramSchema, isRequired)}
+      <ScrollArea className="h-60 w-full">
+        <div className="pr-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {parameterKeys.map(paramName => {
+            const paramSchema = schema[paramName];
+            const isRequired = requiredFields.includes(paramName);
+            
+            return (
+              <div key={paramName} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Label htmlFor={paramName} className="flex items-center text-sm" style={{ gap: '8px' }}>
+                  <span className="font-mono">{paramName}</span>
+                  {isRequired && <Badge variant="destructive" className="text-xs" style={{ padding: '2px 6px' }} aria-label="Required field">Required</Badge>}
+                </Label>
+                {paramSchema.description && (
+                  <p id={`${paramName}-description`} className="text-sm text-muted-foreground">{paramSchema.description}</p>
+                )}
+                <div style={{ marginTop: '4px' }}>
+                  {renderParameterInput(paramName, paramSchema, isRequired)}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
     );
   };
 

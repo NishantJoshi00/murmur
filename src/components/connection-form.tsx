@@ -215,7 +215,7 @@ export function ConnectionForm({ connectionState, savedConnections, onSaveConnec
               <div className="text-sm space-y-1">
                 <div><strong>Name:</strong> {connectionState.serverInfo.name}</div>
                 <div><strong>Version:</strong> {connectionState.serverInfo.version}</div>
-                <div><strong>Protocol Version:</strong> {connectionState.serverInfo.protocolVersion}</div>
+                <div><strong>Protocol Version:</strong> {String(connectionState.serverInfo.protocolVersion)}</div>
               </div>
             </div>
           </>

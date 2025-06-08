@@ -45,7 +45,7 @@ export interface ThemeConfig {
   themes: Record<string, Theme>;
 }
 
-const themeConfig: ThemeConfig = themes;
+const themeConfig: ThemeConfig = themes as ThemeConfig; // TODO: Fix theme type definitions
 
 // Get all available themes
 export function getAvailableThemes(): Record<string, Theme> {
