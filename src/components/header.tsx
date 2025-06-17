@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeSelector } from '@/components/theme-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, Wifi, WifiOff, Plus } from 'lucide-react';
+import { Settings, Wifi, WifiOff, Plus, Github } from 'lucide-react';
 import type { ConnectionState } from '@/types/mcp';
 import type { ConnectionProfile } from '@/lib/connection-manager';
 
@@ -173,6 +173,23 @@ export function Header({ connectionState, savedConnections, onOpenConnectionModa
           >
             <Settings className="h-4 w-4" />
             Manage
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="transition-all duration-200 hover:bg-accent hover:border-accent-foreground/20 focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            style={{ padding: '8px', height: '40px', width: '40px' }}
+          >
+            <a 
+              href="https://github.com/NishantJoshi00/murmur" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center"
+            >
+              <Github className="h-4 w-4" />
+              <span className="sr-only">GitHub repository</span>
+            </a>
           </Button>
           <ThemeSelector />
         </div>

@@ -135,7 +135,7 @@ export function ToolsSidebar({
       
       <CardContent className="flex-1 overflow-hidden" style={{ padding: '0 24px 24px 24px' }}>
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg" style={{ padding: '16px', marginBottom: '20px' }}>
+          <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-sm" style={{ padding: '16px', marginBottom: '20px' }}>
             {error}
           </div>
         )}
@@ -163,7 +163,7 @@ export function ToolsSidebar({
                 {filteredTools.map((tool) => (
                   <div
                     key={tool.name}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="border border-border rounded-sm hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectTool(tool)}
                     tabIndex={0}
@@ -214,7 +214,7 @@ export function ToolsSidebar({
                 {filteredResources.map((resource) => (
                   <div
                     key={resource.uri}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="border border-border rounded-sm hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectResource(resource)}
                     tabIndex={0}
@@ -260,7 +260,7 @@ export function ToolsSidebar({
                 {filteredPrompts.map((prompt) => (
                   <div
                     key={prompt.name}
-                    className="border border-border rounded-lg hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="border border-border rounded-sm hover:bg-accent/50 hover:border-accent-foreground/20 hover:shadow-sm cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-ring"
                     style={{ padding: '20px' }}
                     onClick={() => onSelectPrompt(prompt)}
                     tabIndex={0}

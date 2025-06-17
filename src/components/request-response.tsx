@@ -97,7 +97,7 @@ export function RequestResponse({
         <select
           value={value}
           onChange={(e) => handleParameterChange(paramName, e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">Select...</option>
           {paramSchema.enum.map((option: string) => (
@@ -112,7 +112,7 @@ export function RequestResponse({
         <select
           value={value.toString()}
           onChange={(e) => handleParameterChange(paramName, e.target.value === 'true')}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">Select...</option>
           <option value="true">true</option>
@@ -401,13 +401,13 @@ export function RequestResponse({
         }`}>
           <CardContent className="flex-1 overflow-hidden" style={{ padding: '24px', marginTop: '0' }}>
           {error && (
-            <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg" style={{ padding: '20px', marginBottom: '20px' }}>
+            <div className="text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-sm" style={{ padding: '20px', marginBottom: '20px' }}>
               <strong>Error:</strong> {error}
             </div>
           )}
           
           {response && (
-            <div className="h-full overflow-y-auto rounded-lg border border-border animate-in fade-in duration-300" style={{ padding: '16px' }}>
+            <div className="h-full overflow-y-auto rounded-sm border border-border animate-in fade-in duration-300" style={{ padding: '16px' }}>
               {(() => {
                 // Check if this is an MCP tool response with content array
                 if (response.content && Array.isArray(response.content)) {
@@ -416,7 +416,7 @@ export function RequestResponse({
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                       {response.content.map((item: any, index: number) => (
-                        <div key={index} className={`rounded-lg border ${isError ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50' : 'border-border bg-muted/30'} animate-in slide-in-from-bottom-2 duration-300`} style={{ padding: '20px', animationDelay: `${index * 100}ms` }}>
+                        <div key={index} className={`rounded-sm border ${isError ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50' : 'border-border bg-muted/30'} animate-in slide-in-from-bottom-2 duration-300`} style={{ padding: '20px', animationDelay: `${index * 100}ms` }}>
                           {isError && (
                             <div className="flex items-center gap-2 mb-3 text-red-600 dark:text-red-400">
                               <XCircle className="h-4 w-4" />
@@ -445,7 +445,7 @@ export function RequestResponse({
                   return (
                     <div style={{ marginBottom: '24px' }}>
                       {response.contents.map((content: any, index: number) => (
-                        <div key={index} className="rounded-lg border border-border bg-muted/30 animate-in slide-in-from-bottom-2 duration-300" style={{ padding: '20px', marginBottom: index < response.contents.length - 1 ? '16px' : '0' }}>
+                        <div key={index} className="rounded-sm border border-border bg-muted/30 animate-in slide-in-from-bottom-2 duration-300" style={{ padding: '20px', marginBottom: index < response.contents.length - 1 ? '16px' : '0' }}>
                           <div className="prose prose-sm max-w-none dark:prose-invert">
                             <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono">
                               {content.text || JSON.stringify(content, null, 2)}
@@ -460,7 +460,7 @@ export function RequestResponse({
                 // Fallback to JSON display for other response types
                 return (
                   <div style={{ marginBottom: '24px' }}>
-                    <pre className="text-sm bg-muted/50 rounded-lg overflow-auto font-mono leading-relaxed" style={{ padding: '20px' }}>
+                    <pre className="text-sm bg-muted/50 rounded-sm overflow-auto font-mono leading-relaxed" style={{ padding: '20px' }}>
                       {JSON.stringify(response, null, 2)}
                     </pre>
                   </div>
